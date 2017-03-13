@@ -150,6 +150,8 @@ five_tweets = get_five_tweets("University of Michigan")
 
 ## PART 3 (c) - Iterate over the five_tweets list, invoke the find_urls function that you defined in Part 1 on each element of the list, and accumulate a new list of each of the total URLs in all five of those tweets in a variable called tweet_urls_found. 
 
+for each in five_tweets:
+	tweet_urls_found = find_urls(each)
 
 ########### TESTS; DO NOT CHANGE ANY CODE BELOW THIS LINE! ###########
 
