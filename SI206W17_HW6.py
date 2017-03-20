@@ -162,18 +162,29 @@ print("\n\n***** Problem 10 *****")
 
 # Define readfiles (make sure to close the file reference in the right place)
 
+def readfiles(filenames):
+    for f in filenames:
+        fileref = open(f,'r')
+        for line in fileref: 
+            yield line
+        fileref.close() 
 
 # Define len_check
 
+def len_check(fileline):
+	for line in fileline: 
+		if len(line) > 40:
+			yield line
 
 # Define main_filterer
 
-
+def main_filterer(filenames):
+	return len_check(readfiles(filenames))
 
 ## Uncomment this code to test so you can see easily what results from your code. DO uncomment it. DO NOT delete or change it. (You can add other code above while you work, of course.)
-# provided_file_names = ["samplehw6_1.txt","samplehw6_2.txt"]
-# for ln in main_filterer(provided_file_names):
-#     print(ln.rstrip('\n'), end=" ")
+provided_file_names = ["samplehw6_1.txt","samplehw6_2.txt"]
+for ln in main_filterer(provided_file_names):
+	print(ln.rstrip('\n'), end=" ")
 #####
 
 
