@@ -16,6 +16,7 @@ import sqlite3
 import sys
 import codecs
 from pprint import pprint
+from collections import Counter
 
 def pretty(obj):
     return json.dumps(obj, sort_keys=True, indent=2)
@@ -195,18 +196,24 @@ for row in cur:
 
 # Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
 
-
-
+query = "SELECT Tweets.tweet_text, Users.screen_name, Tweets.retweets FROM Users INNER JOIN Tweets ON instr(Tweets.tweet_text, Users.screen_name) WHERE Tweets.retweets > 50"
+cur.execute(query)
+joined_result = []
+for row in cur:
+	joined_result.append((row[1],row[0]))
 
 ## Task 4 - Manipulating data with comprehensions & libraries
 
 ## Use a set comprehension to get a set of all words (combinations of characters separated by whitespace) among the descriptions in the descriptions_fav_users list. Save the resulting set in a variable called description_words.
 
-
+description_words = {x for x in descriptions_fav_users}
 
 ## Use a Counter in the collections library to find the most common character among all of the descriptions in the descriptions_fav_users list. Save that most common character in a variable called most_common_char. Break any tie alphabetically (but using a Counter will do a lot of work for you...).
 
-
+cnt = Counter()
+for a in description_words:
+	print(a)
+	#cnt[word] += 1
 
 ## Putting it all together...
 # Write code to create a dictionary whose keys are Twitter screen names and whose associated values are lists of tweet texts that that user posted. You may need to make additional queries to your database! To do this, you can use, and must use at least one of: the DefaultDict container in the collections library, a dictionary comprehension, list comprehension(s). Y
