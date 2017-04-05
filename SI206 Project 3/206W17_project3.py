@@ -17,14 +17,15 @@ import sys
 import codecs
 from pprint import pprint
 from collections import Counter
+from collections import defaultdict
 
 def pretty(obj):
     return json.dumps(obj, sort_keys=True, indent=2)
 
 sys.stdout = codecs.getwriter('utf8')(sys.stdout.buffer)
 
-## Your name:
-## The names of anyone you worked with on this project:
+## Your name: Minjee Kim
+## The names of anyone you worked with on this project: Worked alone
 
 #####
 
@@ -211,18 +212,34 @@ description_words = {x for x in descriptions_fav_users}
 ## Use a Counter in the collections library to find the most common character among all of the descriptions in the descriptions_fav_users list. Save that most common character in a variable called most_common_char. Break any tie alphabetically (but using a Counter will do a lot of work for you...).
 
 cnt = Counter()
-for a in description_words:
-	print(a)
-	#cnt[word] += 1
+for word in description_words:
+	for char in word:
+		cnt[char] += 1
+
+sorting = sorted(cnt.keys(), key = cnt.get, reverse = True)
+most_common_char = sorting[1]
+
 
 ## Putting it all together...
 # Write code to create a dictionary whose keys are Twitter screen names and whose associated values are lists of tweet texts that that user posted. You may need to make additional queries to your database! To do this, you can use, and must use at least one of: the DefaultDict container in the collections library, a dictionary comprehension, list comprehension(s). Y
 # You should save the final dictionary in a variable called twitter_info_diction.
 
+query = "SELECT Tweets.tweet_text, Users.screen_name FROM Users INNER JOIN Tweets ON instr(Tweets.tweet_text, Users.screen_name)"
+cur.execute(query)
+joined_result2 = []
+for row in cur:
+	joined_result2.append((row[1],row[0]))
 
+twitter_info_diction = defaultdict(list)
+
+for name, texts in joined_result2:
+    twitter_info_diction[name].append(texts)
+
+twitter_info_diction = dict(twitter_info_diction)
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, but it's a pain). ###
 
+conn.close()
 
 ###### TESTS APPEAR BELOW THIS LINE ######
 ###### Note that the tests are necessary to pass, but not sufficient -- must make sure you've followed the instructions accurately! ######
