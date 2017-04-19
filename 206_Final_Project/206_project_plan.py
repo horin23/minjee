@@ -7,6 +7,7 @@ import collections
 import tweepy
 import twitter_info # same deal as always...
 import json
+import requests
 import sqlite3
 import sys
 import codecs
@@ -47,7 +48,7 @@ except:
 
 
 # A function to get and cache data based on a search term
-def get_search_term(term):   
+def get_search_terms(term):   
 	unique_identifier = term
 
 	if unique_identifier in CACHE_DICTION:
@@ -99,6 +100,25 @@ def get_user_tweets(term):
 
 ## Write function(s) to get and cache data from the OMDB API with a movie title search (Test it out!) http://www.omdbapi.com 
 
+def get_OMDB_data(term):
+	unique_identifier = term
+	base_url = "http://www.omdbapi.com/?t=" + unique_identifier
+
+	if unique_identifier in CACHE_DICTION:
+		print('using cached data')
+		return CACHE_DICTION[unique_identifier]
+	else:
+		print('getting data from internet')
+		response = requests.get(base_url)
+
+		CACHE_DICTION[unique_identifier] = response.json()
+
+		cache_file = open(CACHE_FNAME,'w')
+		cache_file.write(json.dumps(CACHE_DICTION))
+		cache_file.close()
+
+	return CACHE_DICTION[unique_identifier]
+
 
 ## Define a class Movie.
 # The constructor should accept a dictionary that represents a movie.
@@ -108,6 +128,41 @@ def get_user_tweets(term):
 # - A list of its actors (check out the data and consider how to get a list of strings that represent actor names!)
 # - The number of languages in the movie
 # - __str__ method
+
+
+class Movie():
+	def __init__(self, movie_data={}):
+		idlist = []
+		titlelist = []
+		directorlist = []
+		ratinglist = []
+		actorlist = []
+		langlist = []
+
+		for a in movie_data:
+			idlist.append(a["imdbID"])
+			titlelist.append(a["Title"])
+			directorlist.append(a["Director"])
+			ratinglist.append(a["imdbRating"])
+			actorlist.append((a["Actors"]))
+			langlist.append(len((a["Language"].split())))
+
+		self.idlist = idlist
+		self.titlelist = titlelist
+		self.directorlist = directorlist
+		self.ratinglist = ratinglist
+		self.actorlist = actorlist
+		self.langlist = langlist
+
+
+movies = ["logan", "frozen", "zootopia"]
+
+movie_data = []
+
+for each in movies:
+	movie_data.append(get_OMDB_data(each))
+
+movie_list = Movie(movie_data)
 
 
 ## Creat a database file: finalproject.db
@@ -136,6 +191,52 @@ def get_user_tweets(term):
 # - top_actor (The top billed (first in the list) actor in the movie)
 
 
+conn = sqlite3.connect('finalproject.db')
+cur = conn.cursor()
+
+cur.execute('DROP TABLE IF EXISTS Tweets')
+
+table_spec = 'CREATE TABLE IF NOT EXISTS '
+table_spec += 'Tweets (tweet_id TEXT PRIMARY KEY, '
+table_spec += 'tweet_text TEXT, user_id TEXT, movie_id TEXT, num_favs INTEGER, retweets INTEGER)'
+cur.execute(table_spec)
+
+cur.execute('DROP TABLE IF EXISTS Users')
+
+table_spec = 'CREATE TABLE IF NOT EXISTS '
+table_spec += 'Users (user_id TEXT PRIMARY KEY, '
+table_spec += 'screen_name TEXT, num_favs INTEGER, description TEXT)'
+cur.execute(table_spec)
+
+cur.execute('DROP TABLE IF EXISTS Movies')
+
+table_spec = 'CREATE TABLE IF NOT EXISTS '
+table_spec += 'Movies (movie_id TEXT PRIMARY KEY, '
+table_spec += 'movie_title TEXT, director TEXT, num_lang INTEGER, rating INTEGER)'
+cur.execute(table_spec)
+
+
+for each in movie_list.idlist:
+	movie_id = each
+	print(movie_id)
+
+for each in movie_list.titlelist:
+	movie_title = each
+
+for each in movie_list.directorlist:
+	director = each
+
+for each in movie_list.ratinglist:
+	rating = each
+
+for each in movie_list.langlist:
+	num_lang = each
+
+cur.execute('INSERT INTO Movies (movie_id, movie_title, director, num_lang, rating) VALUES (?, ?, ?, ?, ?)', (movie_id, movie_title, director, num_lang, rating))
+
+conn.commit()
+
+
 ## Making queries
 # Make a query to select all of the records in the Users database. Save the list of tuples in a variable called users_info.
 
@@ -153,6 +254,7 @@ def get_user_tweets(term):
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, but it's a pain). ###
 
+conn.close()
 
 ###### TESTS APPEAR BELOW THIS LINE ######
 ###### Note that the tests are necessary to pass, but not sufficient -- must make sure you've followed the instructions accurately! ######
