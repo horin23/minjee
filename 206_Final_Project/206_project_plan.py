@@ -139,14 +139,6 @@ class Movie():
 		actorlist = []
 		langlist = []
 
-		for a in movie_data:
-			idlist.append(a["imdbID"])
-			titlelist.append(a["Title"])
-			directorlist.append(a["Director"])
-			ratinglist.append(a["imdbRating"])
-			actorlist.append((a["Actors"]))
-			langlist.append(len((a["Language"].split())))
-
 		self.idlist = idlist
 		self.titlelist = titlelist
 		self.directorlist = directorlist
@@ -155,7 +147,7 @@ class Movie():
 		self.langlist = langlist
 
 
-movies = ["logan", "frozen", "zootopia"]
+movies = ["logan", "frozen", "zootopia", "la la land"]
 
 movie_data = []
 
@@ -215,24 +207,14 @@ table_spec += 'Movies (movie_id TEXT PRIMARY KEY, '
 table_spec += 'movie_title TEXT, director TEXT, num_lang INTEGER, rating INTEGER)'
 cur.execute(table_spec)
 
+for each in movie_data:
+	movie_id = (each["imdbID"])
+	movie_title = (each["Title"])
+	director = (each["Director"])
+	rating = (each["imdbRating"])
+	num_lang = (len((each["Language"].split())))
 
-for each in movie_list.idlist:
-	movie_id = each
-	print(movie_id)
-
-for each in movie_list.titlelist:
-	movie_title = each
-
-for each in movie_list.directorlist:
-	director = each
-
-for each in movie_list.ratinglist:
-	rating = each
-
-for each in movie_list.langlist:
-	num_lang = each
-
-cur.execute('INSERT INTO Movies (movie_id, movie_title, director, num_lang, rating) VALUES (?, ?, ?, ?, ?)', (movie_id, movie_title, director, num_lang, rating))
+	cur.execute('INSERT INTO Movies (movie_id, movie_title, director, num_lang, rating) VALUES (?, ?, ?, ?, ?)', (movie_id, movie_title, director, num_lang, rating))
 
 conn.commit()
 
