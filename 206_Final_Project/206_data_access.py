@@ -230,14 +230,6 @@ conn.commit()
 
 
 ## Making queries
-
-# Make a query to select all of the records in the Users database. Save the list of tuples in a variable called users_info.
-query = 'SELECT * FROM Users'
-cur.execute(query)
-users_info = []
-for row in cur:
-	users_info.append(row)
-
 # Make a query to select all of the user screen names from the database. Save a resulting list of strings (NOT tuples, the strings inside them!) in the variable screen_names. HINT: a list comprehension will make this easier to complete!
 
 query = 'SELECT movie_title FROM Movies WHERE rating >= 8.5'
@@ -248,22 +240,12 @@ for row in cur:
 
 #print(best_movies)
 
+# Make a query that finds the movies tweeted by users with the most number of favorites.
 
-# Make a query that accesses the numbers of times a movie title was mention in tweets, and the number of times those tweets have been favorited -- so I'll be joining the Movie table and the Tweets table.
-
-# Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
-
-cur.execute("SELECT Tweets.search_term FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_id WHERE Users.num_favs > 10000")
+cur.execute("SELECT Tweets.search_term FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_id WHERE Users.num_favs > 1000")
 query = cur.fetchall()
 for a in query:
-	print(a[0])
-
-
-#joined_result = []
-#for row in cur:
-#	joined_result.append((row[1],row[0]))
-
-#print(joined_result)
+	movies_with_most_user_favourites = a[0]
 
 # Make a query to select all of the tweets (full rows of tweet information) that have been retweeted more than 100 times.
 
@@ -276,13 +258,56 @@ for row in cur:
 
 #print(more_than_100_rts)
 
+# Make a query to select all the descriptions (descriptions only) of the users who have favorited more than 1000 tweets. Access all those strings, and save them in a variable called descriptions_fav_users, which should ultimately be a list of strings.
 
-## Use a set comprehension to look for unique names and proper nouns in this big set of text
+query = 'SELECT * FROM Users'
+cur.execute(query)
+descriptions_fav_users = []
+for row in cur:
+	if row[-2] > 1000:
+		descriptions_fav_users.append(row[-1])
+
+## Use a set comprehension to get a set of all sentences among the descriptions in the descriptions_fav_users list. Save the resulting set in a variable called description_sentences.
+
+description_sentences = {x for x in descriptions_fav_users}
+
+## Use a Counter in the collections library to find the most common word among all of the descriptions in the descriptions_fav_users list.
+cnt = Counter()
+for sentence in description_sentences:
+	for word in sentence.split():
+		cnt[word] += 1
+
+sorting = sorted(cnt.keys(), key = cnt.get, reverse = True)
+most_common_word = sorting[0]
+
+print(most_common_word)
 
 
-## Use a Counter in the collections library to find the most common adjective used among the tweets about a movie.
+query = "SELECT movie_title, top_actor FROM Movies"
+cur.execute(query)
+joined_result = []
+for row in cur:
+	joined_result.append((row[0],row[1]))
+
+#print(joined_result)
+
+twitter_info_diction = defaultdict(list)
+
+for name, texts in joined_result:
+    twitter_info_diction[name].append(texts)
+
+twitter_info_diction = dict(twitter_info_diction)
+
+print(twitter_info_diction)
+
+outfile = open("movie_information.txt","a")
+
+for a in best_movies:
+	outfile.write(a)
+	outfile.write(' and ')
 
 
+outfile.close()
 
 ### IMPORTANT: MAKE SURE TO CLOSE YOUR DATABASE CONNECTION AT THE END OF THE FILE HERE SO YOU DO NOT LOCK YOUR DATABASE (it's fixable, but it's a pain). ###
 
