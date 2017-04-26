@@ -190,8 +190,6 @@ cur.execute(table_spec)
 movies = ["logan", "guardians of the galaxy", "zootopia", "the shawshank redemption"]
 
 movie_data = []
-movie_tweets = []
-movie_id_list = []
 
 for each_movie in movies:
 	movie_data.append(get_OMDB_data(each_movie))
@@ -199,7 +197,6 @@ for each_movie in movies:
 for each in movie_data: # Movie table
 	m = Movie(each)
 	movie_id = m.movie_id
-	movie_id_list.append(movie_id)
 	movie_title = m.movie_title
 	director = m.director
 	rating = m.rating
@@ -280,7 +277,6 @@ for sentence in description_sentences:
 sorting = sorted(cnt.keys(), key = cnt.get, reverse = True)
 most_common_word = sorting[0]
 
-print(most_common_word)
 
 
 query = "SELECT movie_title, top_actor FROM Movies"
@@ -289,8 +285,6 @@ joined_result = []
 for row in cur:
 	joined_result.append((row[0],row[1]))
 
-#print(joined_result)
-
 twitter_info_diction = defaultdict(list)
 
 for name, texts in joined_result:
@@ -298,14 +292,25 @@ for name, texts in joined_result:
 
 twitter_info_diction = dict(twitter_info_diction)
 
-print(twitter_info_diction)
+
 
 outfile = open("movie_information.txt","a")
 
-for a in best_movies:
-	outfile.write(a)
-	outfile.write(' and ')
+outfile.write("The best rated movies are ")
 
+outfile.write("{} and {}".format(best_movies[0],best_movies[1]))
+
+outfile.write('\n\n')
+
+m = Movie(get_OMDB_data(best_movies[0]))
+outfile.write(m.__str__() + '\n')
+
+n = Movie(get_OMDB_data(best_movies[1]))
+outfile.write(n.__str__())
+
+outfile.write('\n\n' + 'The most common word used in the tweets about the movies is: ')
+
+outfile.write(most_common_word)
 
 outfile.close()
 
@@ -320,26 +325,26 @@ print("\n\nBELOW THIS LINE IS OUTPUT FROM TESTS:\n")
 class Caching(unittest.TestCase):
 	def test_cache_diction(self):
 		self.assertEqual(type(CACHE_DICTION),type({}),"Testing whether you have a CACHE_DICTION dictionary")
-	def test_get_movie_tweets(self):
-		res = get_movie_tweets("Logan")
+	def test_get_twitter_search(self):
+		res = get_twitter_search("Logan")
 		self.assertEqual(type(res),type(["hi",3]))
 	def test_movie_tweets(self):
 		self.assertEqual(type(movie_tweets),type([]))
 
 class MoiveTest(unittest.TestCase):
 	def test___str__(self):
-		#d = Movie({dictionary representing a movie})
+		d = Movie(get_OMDB_data("zootopia"))
 		self.assertFalse(type(d.__str__()) != type(""))
 
 class TableTest(unittest.TestCase):
-	def test_tweets_1(self):
+	def test_tweets(self):
 		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Tweets');
 		result = cur.fetchall()
-		self.assertTrue(len(result[1])==6,"Testing that there are 5 columns in the Tweets table")
+		self.assertTrue(len(result[1])==7,"Testing that there are 7 columns in the Tweets table")
 		conn.close()
-	def test_users_1(self):
+	def test_users(self):
 		conn = sqlite3.connect('finalproject.db')
 		cur = conn.cursor()
 		cur.execute('SELECT * FROM Users');
@@ -348,14 +353,16 @@ class TableTest(unittest.TestCase):
 		conn.close()
 
 class QueryTest(unittest.TestCase):
-	def test_users_info(self):
-		self.assertEqual(type(users_info),type([]),"testing that users_info contains a list")
-	def test_users_info2(self):
-		self.assertEqual(type(users_info[1]),type(("hi","bye")),"Testing that an element in the users_info list is a tuple")
+	def test_best_movies(self):
+		self.assertEqual(type(best_movies),type([]))
 
 class Task4(unittest.TestCase):
-	def test_common_adj(self):
-		self.assertEqual(type(most_common_adj),type(""),"Testing that most_common_adj is a string")
+	def test_most_common_word(self):
+		self.assertEqual(type(most_common_word),type(""))
+
+class Task5(unittest.TestCase):
+	def test_best_movies2(self):
+		self.assertEqual(type(twitter_info_diction),type({}))
 
 if __name__ == "__main__":
 	unittest.main(verbosity=2)
