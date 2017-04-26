@@ -116,7 +116,7 @@ class Movie():
 		return self.actors[0]
 
 	def __str__(self):
-		return "Title: {} \nDirector: {} \nRating: {} \nCasts: {}\nLanguages: {}\n".format(self.movie_title,self.director,self.rating,self.actors,self.num_lang)
+		return "Movie: {} \nDirector: {} \nRating: {} \nCasts: {}\nLanguages: {}\n".format(self.movie_title,self.director,self.rating,self.actors,self.num_lang)
 
 class Tweet():
 	def __init__(self, dic={}):
@@ -169,7 +169,7 @@ cur.execute('DROP TABLE IF EXISTS Tweets')
 
 table_spec = 'CREATE TABLE IF NOT EXISTS '
 table_spec += 'Tweets (tweet_id TEXT PRIMARY KEY, '
-table_spec += 'tweet_text TEXT, user_id TEXT, screen_name TEXT, num_favs INTEGER, retweets INTEGER, movie_id TEXT)'
+table_spec += 'tweet_text TEXT, user_id TEXT, screen_name TEXT, num_favs INTEGER, retweets INTEGER, search_term TEXT)'
 cur.execute(table_spec)
 
 cur.execute('DROP TABLE IF EXISTS Users')
@@ -196,7 +196,7 @@ movie_id_list = []
 for each_movie in movies:
 	movie_data.append(get_OMDB_data(each_movie))
 
-for each in movie_data:
+for each in movie_data: # Movie table
 	m = Movie(each)
 	movie_id = m.movie_id
 	movie_id_list.append(movie_id)
@@ -205,13 +205,13 @@ for each in movie_data:
 	rating = m.rating
 	num_lang = m.num_lang
 	top_actor = m.top_actor()
-	print(m.__str__())
+	#print(m.__str__())
 
 	cur.execute('INSERT INTO Movies (movie_id, movie_title, director, num_lang, rating, top_actor) VALUES (?, ?, ?, ?, ?, ?)', (movie_id, movie_title, director, num_lang, rating, top_actor))
 
-for each_movie in movies:
+for each_movie in movies: # Tweet and User table
 	movie_tweets = get_twitter_search(each_movie)
-	movie_id = each_movie
+	search_term = each_movie
 	for each_tweet in movie_tweets:
 		t = Tweet(each_tweet)
 		tweet_id = t.tweet_id
@@ -222,20 +222,59 @@ for each_movie in movies:
 		screen_name = t.screen_name
 		description = t.description
 
-		cur.execute('INSERT INTO Tweets (tweet_id, tweet_text, user_id, screen_name, num_favs, retweets, movie_id) VALUES (?, ?, ?, ?, ?, ?, ?)', (tweet_id, tweet_text, user_id, screen_name, num_favs, retweets, movie_id))
+		cur.execute('INSERT INTO Tweets (tweet_id, tweet_text, user_id, screen_name, num_favs, retweets, search_term) VALUES (?, ?, ?, ?, ?, ?, ?)', (tweet_id, tweet_text, user_id, screen_name, num_favs, retweets, search_term))
 		cur.execute('INSERT OR IGNORE INTO Users (user_id, screen_name, num_favs, description) VALUES (?, ?, ?, ?)', (user_id, screen_name, num_favs, description))
 
 
 conn.commit()
 
+
 ## Making queries
 
 # Make a query to select all of the records in the Users database. Save the list of tuples in a variable called users_info.
+query = 'SELECT * FROM Users'
+cur.execute(query)
+users_info = []
+for row in cur:
+	users_info.append(row)
+
+# Make a query to select all of the user screen names from the database. Save a resulting list of strings (NOT tuples, the strings inside them!) in the variable screen_names. HINT: a list comprehension will make this easier to complete!
+
+query = 'SELECT movie_title FROM Movies WHERE rating >= 8.5'
+cur.execute(query)
+best_movies = []
+for row in cur:
+	best_movies.append(row[0])
+
+#print(best_movies)
 
 
 # Make a query that accesses the numbers of times a movie title was mention in tweets, and the number of times those tweets have been favorited -- so I'll be joining the Movie table and the Tweets table.
 
-# Make a query to select all of the tweets (full rows of tweet information) that have been retweeted more than 25 times.
+# Make a query using an INNER JOIN to get a list of tuples with 2 elements in each tuple: the user screenname and the text of the tweet -- for each tweet that has been retweeted more than 50 times. Save the resulting list of tuples in a variable called joined_result.
+
+cur.execute("SELECT Tweets.search_term FROM Users INNER JOIN Tweets ON Users.user_id = Tweets.user_id WHERE Users.num_favs > 10000")
+query = cur.fetchall()
+for a in query:
+	print(a[0])
+
+
+#joined_result = []
+#for row in cur:
+#	joined_result.append((row[1],row[0]))
+
+#print(joined_result)
+
+# Make a query to select all of the tweets (full rows of tweet information) that have been retweeted more than 100 times.
+
+query = 'SELECT * FROM Tweets'
+cur.execute(query)
+more_than_100_rts = []
+for row in cur:
+	if row[-2] > 100:
+		more_than_100_rts.append(row[1])
+
+#print(more_than_100_rts)
 
 
 ## Use a set comprehension to look for unique names and proper nouns in this big set of text
