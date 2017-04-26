@@ -47,6 +47,7 @@ except:
 	CACHE_DICTION = {}
 
 
+
 # A function to get and cache data based on a search term
 def get_twitter_search(term):   
 	unique_identifier = "tweet_{}".format(term)
@@ -101,6 +102,7 @@ def get_OMDB_data(term):
 # - A list of its actors (check out the data and consider how to get a list of strings that represent actor names!)
 # - The number of languages in the movie
 # - __str__ method
+
 
 
 class Movie():
@@ -308,7 +310,7 @@ outfile.write(m.__str__() + '\n')
 n = Movie(get_OMDB_data(best_movies[1]))
 outfile.write(n.__str__())
 
-outfile.write('\n\n' + 'The most common word used in the tweets about the movies is: ')
+outfile.write('\n' + 'The most common word used in the tweets about the movies is: ')
 
 outfile.write(most_common_word)
 
